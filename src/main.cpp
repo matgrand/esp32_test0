@@ -20,9 +20,7 @@ void setup() {
 }
 
 void loop() {
-  ArduinoOTA.handle();
-
-  // Your code here
+  ArduinoOTA.handle(); // Handle OTA events, must be called often
 
   //blink led
   digitalWrite(ledPin, HIGH);
