@@ -4,8 +4,9 @@
 
 //set led pin
 const int ledPin = 2;
+const int clickPin = 18;
 #define DELAY 50
-#define CLICK_TIME 800
+#define CLICK_TIME 900
 
 // void setup() {
 //   Serial.begin(115200);
@@ -38,10 +39,10 @@ WiFiServer server(80);
 String header;
 
 // Auxiliar variables to store the current output state
-String output26State = "off";
+String ledState = "off";
 
 // Assign output variables to GPIO pins
-const int output26 = 2;
+
 
 // Current time
 unsigned long currentTime = millis();
@@ -50,9 +51,32 @@ unsigned long previousTime = 0;
 // Define timeout time in milliseconds (example: 2000ms = 2s)
 const long timeoutTime = 2000;
 
+void click() {
+  // pinMode(clickPin, OUTPUT);
+  digitalWrite(clickPin, LOW);
+  unsigned long start = millis();
+  while (millis() - start < CLICK_TIME)
+  {
+    digitalWrite(ledPin, HIGH);
+    delay(20);
+    digitalWrite(ledPin, LOW);
+    delay(20);
+  }
+  digitalWrite(clickPin, HIGH);
+  // pinMode(clickPin, INPUT_PULLUP);
+}
+
 void setup() {
   Serial.begin(115200);
-  setupOTA("ESP32-Test-OTA", ssid, pass);
+  setupOTA("ESP32-OTA", ssid, pass);
+
+  // Initialize the output variables as outputs
+  pinMode(ledPin, OUTPUT);
+  // pinMode(clickPin, INPUT_PULLUP);
+  pinMode(clickPin, OUTPUT);
+
+  // Set outputs to HIGH
+  digitalWrite(clickPin, HIGH);
 
   // allow for OTA if something goes wrong
   for (int i = 0; i < 10; i++) {
@@ -67,12 +91,7 @@ void setup() {
     digitalWrite(ledPin, LOW);
     delay(50);
   }
-
-  // Initialize the output variables as outputs
-  pinMode(ledPin, OUTPUT);
-  pinMode(output26, OUTPUT);
-  // Set outputs to LOW
-  digitalWrite(output26, LOW);
+  digitalWrite(ledPin, LOW);
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
@@ -125,27 +144,23 @@ void loop(){
             bool show_site = true;
 
             // turns the GPIOs on and off
-            if (header.indexOf("GET /26/on") >= 0) { // 26 ON 
-              Serial.println("GPIO 26 on");
-              output26State = "on";
-              digitalWrite(output26, HIGH);
+            if (header.indexOf("GET /LED/on") >= 0) { // LED ON 
+              Serial.println("LED on");
+              ledState = "on";
+              digitalWrite(ledPin, HIGH);
             } 
-            else if (header.indexOf("GET /26/off") >= 0) { // 26 OFF
-              Serial.println("GPIO 26 off");
-              output26State = "off";
-              digitalWrite(output26, LOW);
+            else if (header.indexOf("GET /LED/off") >= 0) { // LED OFF
+              Serial.println("LED off");
+              ledState = "off";
+              digitalWrite(ledPin, LOW);
             } 
-            else if (header.indexOf("GET /26/click") >= 0) { // 26 CLICK
-              Serial.println("GPIO 26 click");
-              digitalWrite(output26, LOW);
-              delay(10);
-              digitalWrite(output26, HIGH);
-              delay(CLICK_TIME);
-              digitalWrite(output26, LOW);
+            else if (header.indexOf("GET /click") >= 0) { // LED CLICK
+              Serial.println("Click");
+              click();
             }
-            else if (header.indexOf("GET /26/state") >= 0) { // 26 STATE
-              Serial.println("GPIO 26 state");
-              client.println(output26State);
+            else if (header.indexOf("GET /LED/state") >= 0) { // LED STATE
+              Serial.println("LED state");
+              client.println(ledState);
               show_site = false;
             }
 
@@ -166,14 +181,14 @@ void loop(){
               // Web Page Heading
               client.println("<body><h1>ESP32 Web Server</h1>");
               
-              // Display current state, and ONN/OFF buttons for GPIO 26  
-              client.println("<p>GPIO 26 - State " + output26State + "</p>");
+              // Display current state, and ONN/OFF buttons for LED  
+              client.println("<p>LED - State " + ledState + "</p>");
               // client.println("<p>" + header + "</p>");
-              // If the output26State is off, it displays the ONN button       
-              if (output26State=="off") {
-                client.println("<p><a href=\"/26/on\"><button class=\"button\">ONN</button></a></p>");
+              // If the ledState is off, it displays the ONN button       
+              if (ledState=="off") {
+                client.println("<p><a href=\"/LED/on\"><button class=\"button\">ONN</button></a></p>");
               } else {
-                client.println("<p><a href=\"/26/off\"><button class=\"button\">OFF</button></a></p>"); //client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
+                client.println("<p><a href=\"/LED/off\"><button class=\"button\">OFF</button></a></p>"); //client.println("<p><a href=\"/LED/off\"><button class=\"button button2\">OFF</button></a></p>");
               } 
             }
             // The HTTP response ends with another blank line

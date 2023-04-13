@@ -1,10 +1,11 @@
 # script to read from server at ip address
 
-LOCAL_IP = '192.168.1.23' # 192.168.1.70
-TIMEOUT_TIME = 1.0 #seconds
-COMMAND_OFF = '/26/off'
-COMMAND_ON = '/26/on'
-COMMAND_STATE = '/26/state'
+LOCAL_IP = '192.168.1.70' # 192.168.1.70 #.23 is dead
+TIMEOUT_TIME = .5 #seconds
+COMMAND_OFF = '/LED/off'
+COMMAND_ON = '/LED/on'
+COMMAND_STATE = '/LED/state'
+COMMAND_CLICK = '/click'
 
 from time import time, sleep
 from urllib.request import urlopen
@@ -30,12 +31,17 @@ if __name__ == '__main__':
 
         command = COMMAND_ON if cnt % 2 == 0 else COMMAND_OFF
 
+        # #change led state    
         # sleep(1.5)
         # # read from server
         # # data = ask_esp32_server()
         # _ = ask_esp32_server(command) # send command
         # #sleep for 1 second
         # sleep(1.5)
+
+        #send click command
+        _ = ask_esp32_server(COMMAND_CLICK) # send command
+        sleep(2.5)
 
         state = ask_esp32_server(COMMAND_STATE) # read data
 
