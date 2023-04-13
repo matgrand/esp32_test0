@@ -5,6 +5,7 @@
 //set led pin
 const int ledPin = 2;
 #define DELAY 50
+#define CLICK_TIME 800
 
 // void setup() {
 //   Serial.begin(115200);
@@ -114,51 +115,70 @@ void loop(){
           // if the current line is blank, you got two newline characters in a row.
           // that's the end of the client HTTP request, so send a response:
           if (currentLine.length() == 0) {
+            
             // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
             // and a content-type so the client knows what's coming, then a blank line:
             client.println("HTTP/1.1 200 OK");
             client.println("Content-type:text/html");
             client.println("Connection: close");
             client.println();
-            
-            // turns the GPIOs onn and off
-            if (header.indexOf("GET /26/onn") >= 0) {
-              Serial.println("GPIO 26 onn");
-              output26State = "onn";
+            bool show_site = true;
+
+            // turns the GPIOs on and off
+            if (header.indexOf("GET /26/on") >= 0) { // 26 ON 
+              Serial.println("GPIO 26 on");
+              output26State = "on";
               digitalWrite(output26, HIGH);
             } 
-            else if (header.indexOf("GET /26/off") >= 0) {
+            else if (header.indexOf("GET /26/off") >= 0) { // 26 OFF
               Serial.println("GPIO 26 off");
               output26State = "off";
               digitalWrite(output26, LOW);
             } 
-            
-            // Display the HTML web page
-            client.println("<!DOCTYPE html><html>");
-            client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
-            client.println("<link rel=\"icon\" href=\"data:,\">");
-            // CSS to style the onn/off buttons 
-            // Feel free to change the background-color and font-size attributes to fit your preferences
-            client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
-            client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
-            client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
-            client.println("</style></head>"); //client.println(".button2 {background-color: #555555;}</style></head>"); 
-            
-            // Web Page Heading
-            client.println("<body><h1>ESP32 Web Server</h1>");
-            
-            // Display current state, and ONN/OFF buttons for GPIO 26  
-            client.println("<p>GPIO 26 - State " + output26State + "</p>");
-            client.println("<p>" + header + "</p>");
-            // If the output26State is off, it displays the ONN button       
-            if (output26State=="off") {
-              client.println("<p><a href=\"/26/onn\"><button class=\"button\">ONN</button></a></p>");
-            } else {
-              client.println("<p><a href=\"/26/off\"><button class=\"button\">OFF</button></a></p>"); //client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
-            } 
+            else if (header.indexOf("GET /26/click") >= 0) { // 26 CLICK
+              Serial.println("GPIO 26 click");
+              digitalWrite(output26, LOW);
+              delay(10);
+              digitalWrite(output26, HIGH);
+              delay(CLICK_TIME);
+              digitalWrite(output26, LOW);
+            }
+            else if (header.indexOf("GET /26/state") >= 0) { // 26 STATE
+              Serial.println("GPIO 26 state");
+              client.println(output26State);
+              show_site = false;
+            }
 
+
+              
+            if (show_site) {
+              // Display the HTML web page
+              client.println("<!DOCTYPE html><html>");
+              client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+              client.println("<link rel=\"icon\" href=\"data:,\">");
+              // CSS to style the on/off buttons 
+              // Feel free to change the background-color and font-size attributes to fit your preferences
+              client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
+              client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
+              client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+              client.println("</style></head>"); //client.println(".button2 {background-color: #555555;}</style></head>"); 
+              
+              // Web Page Heading
+              client.println("<body><h1>ESP32 Web Server</h1>");
+              
+              // Display current state, and ONN/OFF buttons for GPIO 26  
+              client.println("<p>GPIO 26 - State " + output26State + "</p>");
+              // client.println("<p>" + header + "</p>");
+              // If the output26State is off, it displays the ONN button       
+              if (output26State=="off") {
+                client.println("<p><a href=\"/26/on\"><button class=\"button\">ONN</button></a></p>");
+              } else {
+                client.println("<p><a href=\"/26/off\"><button class=\"button\">OFF</button></a></p>"); //client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
+              } 
+            }
             // The HTTP response ends with another blank line
             client.println();
+
             // Break out of the while loop
             break;
           } else { // if you got a newline, then clear currentLine
@@ -176,5 +196,5 @@ void loop(){
     Serial.println("Client disconnected.");
     Serial.println("");
   }
-  delay(100);
+  delay(50);
 }
