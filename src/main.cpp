@@ -52,18 +52,22 @@ unsigned long previousTime = 0;
 const long timeoutTime = 2000;
 
 void click() {
-  // pinMode(clickPin, OUTPUT);
-  digitalWrite(clickPin, LOW);
+  pinMode(clickPin, OUTPUT);
+  delay(1);
+  digitalWrite(clickPin, HIGH); //start from released state
+  delay(50);
+  digitalWrite(clickPin, LOW); //press the button
   unsigned long start = millis();
   while (millis() - start < CLICK_TIME)
   {
-    digitalWrite(ledPin, HIGH);
+    digitalWrite(ledPin, HIGH); //visual feedback
     delay(20);
     digitalWrite(ledPin, LOW);
     delay(20);
   }
-  digitalWrite(clickPin, HIGH);
-  // pinMode(clickPin, INPUT_PULLUP);
+  digitalWrite(clickPin, HIGH); // release the button
+  delay(50);
+  pinMode(clickPin, INPUT); // Set pin back to INPUT, let the true button work normally
 }
 
 void setup() {
@@ -73,7 +77,7 @@ void setup() {
   // Initialize the output variables as outputs
   pinMode(ledPin, OUTPUT);
   // pinMode(clickPin, INPUT_PULLUP);
-  pinMode(clickPin, OUTPUT);
+  pinMode(clickPin, INPUT); // Set pin to INPUT, let the true button work normally
 
   // Set outputs to HIGH
   digitalWrite(clickPin, HIGH);
