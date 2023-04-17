@@ -121,6 +121,7 @@ void setup() {
 void loop(){
   ArduinoOTA.handle(); // Handle OTA events, must be called often
   WiFiClient client = server.available();   // Listen for incoming clients
+  bool please_click = false;                // boolean to check if we need to click
 
   if (client) {                             // If a new client connects,
     currentTime = millis();
@@ -160,7 +161,8 @@ void loop(){
             } 
             else if (header.indexOf("GET /click") >= 0) { // LED CLICK
               Serial.println("Click");
-              click();
+              please_click = true;
+              // click();
             }
             else if (header.indexOf("GET /LED/state") >= 0) { // LED STATE
               Serial.println("LED state");
@@ -215,5 +217,8 @@ void loop(){
     Serial.println("Client disconnected.");
     Serial.println("");
   }
+  
+  if (please_click) click(); // if we need to click, click
+  
   delay(50);
 }
